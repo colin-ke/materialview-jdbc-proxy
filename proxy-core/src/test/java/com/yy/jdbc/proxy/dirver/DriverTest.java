@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import com.mysql.jdbc.DatabaseMetaData;
 import com.yy.jdbc.proxy.sql.SqlExpression;
@@ -36,13 +37,22 @@ public class DriverTest {
 //		String sql = "select tt1.a,tt2.b,tt3.c,tt4.d from t1 tt1 join t2 tt2 on tt1.a=tt2.a join t3 tt3 on tt3.a=tt1.a join t4 tt4 on tt4.a=tt1.a where (tt1.b=1 and tt2.b=2)or tt3.d=4 group by tt1.c,tt2.c order by tt3.c asc,tt4.c desc";
 //		conn.prepareStatement("show tables;");
 //		conn.createStatement().executeQuery(sql);
-//		conn.createStatement().execute("create materialized view mv_sales_fact_month1 as SELECT month_of_year,f.product_id,COUNT(f.time_id)  FROM sales_fact_1997 f JOIN time_by_day d ON f.time_id=d.time_id WHERE d.product_id>1537  GROUP BY month_of_year,d.product_id;");
-//		conn.createStatement().execute("drop materialized view m_view111");
+//		conn.createStatement().execute("create materialized view m_viewwww as select user_id from mv_real_01;");
+//		conn.createStatement().execute("drop materialized view m_viewwww");
 //		conn.createStatement().executeQuery("select game_name,sum(game_id) as cnt from dim_game group by game_name order by game_name desc");
 //		conn.createStatement().execute("set auto_rewrite=on;");
 //		conn.createStatement().executeQuery("show tables;");
 		conn.createStatement().execute("set auto_rewrite=on");
-		conn.createStatement().executeQuery("SELECT d.month_of_year,f.product_id,COUNT(f.time_id) c FROM sales_fact_1997 f JOIN time_by_day d ON f.time_id=d.time_id WHERE f.product_id>1537  GROUP BY d.month_of_year,f.product_id;");
+//		conn.createStatement().executeQuery("SELECT d.month_of_year,f.product_id,COUNT(f.time_id) c FROM sales_fact_199777 f JOIN time_by_day d ON f.time_id=d.time_id WHERE f.product_id>1537  GROUP BY d.month_of_year,f.product_id;");
+		
+		
+		ResultSet resultSet=conn.createStatement().executeQuery("SELECT user_id FROM admin_user");
+		while(resultSet.next()){
+			System.out.println(resultSet.getString("user_id"));
+		}
+		
+		
+		
 	}
 
 	@Test

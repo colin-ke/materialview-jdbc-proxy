@@ -1,6 +1,5 @@
 package com.yy.jdbc.proxy.sql;
 
-import com.yy.jdbc.proxy.sql.parser.select.SQLExpression;
 import com.yy.jdbc.proxy.sql.where.Condition;
 import com.yy.jdbc.proxy.sql.where.field.Relation;
 import org.apache.commons.lang3.StringUtils;
@@ -46,16 +45,11 @@ public class SqlExpression implements Serializable {
 
 
     /**
-     * 1. 关于select中的汇聚
-     * 若要能直接从物化视图中select汇聚好的，需要 -> where条件完全一致！！
-     * 否则需要物化视图的select中包含汇聚的明细列，
-     * <p/>
-     * 2. 关于物化视图与目标sql的from关系
+     * 关于物化视图与目标sql的from关系
      * * 物化视图 完全包含 目标sql：where也包含，groupBy顺序相同，粒度比目标sql细，则可将目标的from直接改写成物化视图
      * * 物化视图 相交于   目标sql：相交部分where条件属于 物化视图的where条件，groupBy同上，则可将交集部分的from改写成物化视图的表
      * todo: 暂时只支持物化视图完全包含目标sql表达式的情况。
      *
-     * @param mtViewSqlEx
      * @return
      */
     public SqlExpression tryRewrite(SqlExpression mtViewSqlEx, String mtViewName) {
@@ -141,21 +135,6 @@ public class SqlExpression implements Serializable {
                     return this;
                 }
             } else {
-                /**
-                 * 是否汇聚 是否具有结合性 where完全相同  粒度相同    操作
-                 * yes	    yes     	   yes	        no	在汇聚好的基础上再汇聚
-                 * yes	    yes     	   no	        yes	汇聚明细
-                 * yes	    yes	           no	        no	汇聚明细
-                 * yes	    no	           yes	        no	汇聚明细
-                 * yes	    no	           no	        yes	汇聚明细
-                 * yes	    no	           no	        no	汇聚明细
-                 * yes	    yes	           yes	        yes	直接select已汇聚好的
-                 * yes	    no	           yes	        yes	直接select已汇聚好的
-                 * no	    yes	           yes	        yes	直接select
-                 * no	    yes	           yes	        no	直接select
-                 * no	    yes	           no	        yes	直接select
-                 * no	    yes	           no	        no	直接select
-                 */
                 if(slt.isAgg()) {
                     // 是汇聚
                     if(slt.associative() && !sameGranularity) {

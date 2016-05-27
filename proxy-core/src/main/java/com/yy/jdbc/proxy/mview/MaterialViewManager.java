@@ -6,6 +6,7 @@ import com.yy.jdbc.proxy.mview.manager.MaterialViewProvider;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 
 /**
@@ -22,8 +23,8 @@ public class MaterialViewManager {
      */
     public static Boolean createMaterialView(
             MaterialView view,
-            Connection conn) throws SQLException {
-        return provider.create(conn, view);
+            Statement stmt) throws SQLException {
+        return provider.create(stmt, view);
     }
 
     /**
@@ -31,8 +32,8 @@ public class MaterialViewManager {
      */
     public static Boolean dropMaterialView(
             String viewName,
-            Connection conn) throws SQLException {
-        return provider.delete(conn, viewName);
+            Statement stmt) throws SQLException {
+        return provider.delete(stmt, viewName);
     }
 
     /**
@@ -40,8 +41,8 @@ public class MaterialViewManager {
      */
     public static Boolean refreshMaterialView(
             String viewName,
-            Connection conn) throws SQLException {
-        return provider.refresh(conn, viewName);
+            Statement stmt) throws SQLException {
+        return provider.refresh(stmt, viewName);
     }
 
 
@@ -50,8 +51,8 @@ public class MaterialViewManager {
      */
     public static Collection<MaterialView> getMaterialViewListByFactTable(
             String factTable,
-            Connection conn) throws SQLException {
-        return provider.getMaterialViewListByFactTable(conn, factTable);
+            Statement stmt) throws SQLException {
+        return provider.getMaterialViewListByFactTable(stmt, factTable);
     }
 
     /**
@@ -59,9 +60,9 @@ public class MaterialViewManager {
      * <p/>
      * 类似命令： show tables
      */
-    public static ResultSet showMaterialViews(
-            Connection conn) throws SQLException {
-        return provider.showMaterialViews(conn);
+    public static boolean showMaterialViews(
+    		Statement stmt) throws SQLException {
+        return provider.showMaterialViews(stmt);
     }
 
     /**
@@ -69,8 +70,8 @@ public class MaterialViewManager {
      * <p/>
      * 类似命令：show create table tableName
      */
-    public static ResultSet showCreateMaterialView(
-            Connection conn, String viewName) throws SQLException {
-        return provider.showCreateMaterialView(conn, viewName);
+    public static boolean showCreateMaterialView(
+            Statement stmt, String viewName) throws SQLException {
+        return provider.showCreateMaterialView(stmt, viewName);
     }
 }

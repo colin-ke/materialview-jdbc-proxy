@@ -4,8 +4,8 @@ import com.yy.jdbc.proxy.mview.MaterialView;
 import com.yy.jdbc.proxy.mview.common.storage.IMaterialViewStoreProvider;
 import com.yy.jdbc.proxy.mview.common.storage.IMaterialViewStoreRepository;
 
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * 物化视图数据存储服务
@@ -20,26 +20,26 @@ public class MaterialViewStoreProvider implements IMaterialViewStoreProvider {
      * {@inheritDoc}
      */
     @Override
-    public boolean build(Connection conn, MaterialView view)
+    public boolean build(Statement statement, MaterialView view)
             throws SQLException {
-        return repository.build(conn, view);
+        return repository.build(statement, view);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean refresh(Connection conn, MaterialView view)
+    public boolean refresh(Statement statement, MaterialView view)
             throws SQLException {
-        return repository.refresh(conn, view);
+        return repository.refresh(statement, view);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean drop(Connection conn, MaterialView view)
+    public boolean drop(Statement statement, MaterialView view)
             throws SQLException {
-        return repository.drop(conn, view);
+        return repository.drop(statement, view);
     }
 }

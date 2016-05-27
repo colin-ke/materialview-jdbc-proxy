@@ -19,6 +19,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ProxyConnection implements Connection {
 	private Connection con;
 	private boolean isSupportMaterialView;
@@ -41,13 +44,16 @@ public class ProxyConnection implements Connection {
 		return new ProxyStatement(this.con.createStatement(),this.isSupportMaterialView);
 	}
 
+	protected static Logger logger = LoggerFactory.getLogger(ProxyConnection.class);
 	@Override
 	public PreparedStatement prepareStatement(String sql) throws SQLException {
+		logger.info("prepareStatement:"+sql);
 		return this.con.prepareStatement(sql);
 	}
 
 	@Override
 	public CallableStatement prepareCall(String sql) throws SQLException {
+		logger.info("prepareCall:"+sql);
 		return this.con.prepareCall(sql);
 	}
 
@@ -134,18 +140,23 @@ public class ProxyConnection implements Connection {
 	@Override
 	public Statement createStatement(int resultSetType, int resultSetConcurrency)
 			throws SQLException {
-		return this.con.createStatement(resultSetType, resultSetConcurrency);
+		return  new ProxyStatement(this.con.createStatement(resultSetType, resultSetConcurrency),this.isSupportMaterialView);
+		
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql, int resultSetType,
 			int resultSetConcurrency) throws SQLException {
+
+		logger.info("prepareStatement(String sql, int resultSetType,int resultSetConcurrency):"+sql);
 		return this.con.prepareStatement(sql, resultSetType, resultSetConcurrency);
 	}
 
 	@Override
 	public CallableStatement prepareCall(String sql, int resultSetType,
 			int resultSetConcurrency) throws SQLException {
+
+		logger.info("prepareCall(String sql, int resultSetType,int resultSetConcurrency):"+sql);
 		return this.con.prepareCall(sql, resultSetType, resultSetConcurrency);
 	}
 
@@ -193,13 +204,15 @@ public class ProxyConnection implements Connection {
 	public Statement createStatement(int resultSetType,
 			int resultSetConcurrency, int resultSetHoldability)
 			throws SQLException {
-		return this.con.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
+		return  new ProxyStatement(this.con.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability),this.isSupportMaterialView);
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql, int resultSetType,
 			int resultSetConcurrency, int resultSetHoldability)
 			throws SQLException {
+		logger.info("prepareStatement(String sql, int resultSetType,int resultSetConcurrency, int resultSetHoldability)"+sql);
+		
 		return this.con.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
 	}
 

@@ -1,13 +1,10 @@
 package com.yy.jdbc.proxy.mview.common;
 
 
-import com.yy.jdbc.proxy.mview.common.manager.MaterialViewAlreadyExistException;
-import org.apache.commons.dbutils.QueryRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.yy.jdbc.proxy.mview.MaterialView;
 
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 
 /**
@@ -20,17 +17,21 @@ public interface Repository<T> {
     /**
      * 是否已存在此对象
      *
+     *
+     * @param statement
      * @param id
      * @return
      */
-    boolean isExists(Connection conn, String id) throws SQLException;
+    boolean isExists(Statement statement, String id) throws SQLException;
 
     /**
      * 创建对象
      *
      * @return
+     * @param statement
+     * @param t
      */
-    boolean create(Connection conn, T t) throws SQLException;
+    boolean create(Statement statement, MaterialView t) throws SQLException;
 
     /**
      * 更新对象
@@ -44,23 +45,28 @@ public interface Repository<T> {
     /**
      * 删除对象
      *
+     *
+     * @param statement
      * @param id
      * @return
      */
-    boolean delete(Connection conn, String id) throws SQLException;
+    boolean delete(Statement statement, String id) throws SQLException;
 
     /**
      * 罗列已有的对象
      *
      * @return
+     * @param statement
      */
-    Collection<T> listAll(Connection conn) throws SQLException;
+    Collection<T> listAll(Statement statement) throws SQLException;
 
     /**
      * 根据id获取对象
      *
+     *
+     * @param statement
      * @param id
      * @return
      */
-    T get(Connection conn, String id) throws SQLException;
+    T get(Statement statement, String id) throws SQLException;
 }

@@ -1,7 +1,10 @@
 package com.yy.jdbc.proxy.mview.common;
 
-import java.sql.Connection;
+import com.yy.jdbc.proxy.mview.MaterialView;
+
+import java.sql.Statement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 
 /**
@@ -14,20 +17,20 @@ public interface Provider<T> {
     /**
      * 是否存在
      *
-     * @param conn
+     * @param statement
      * @param id
      * @return
      */
-    boolean isExists(Connection conn, String id) throws SQLException;
+    boolean isExists(Statement statement, String id) throws SQLException;
 
     /**
      * 创建此对象
      *
-     * @param conn
+     * @param statement
      * @param t
      * @return
      */
-    boolean create(Connection conn, T t) throws SQLException;
+    boolean create(Statement statement, MaterialView t) throws SQLException;
 
     /**
      * 更新此对象
@@ -40,26 +43,26 @@ public interface Provider<T> {
     /**
      * 删除此对象
      *
-     * @param conn
+     * @param statement
      * @param id
      * @return
      */
-    boolean delete(Connection conn, String id) throws SQLException;
+    boolean delete(Statement statement, String id) throws SQLException;
 
     /**
      * 查询所有
      *
-     * @param conn
+     * @param statement
      * @return
      */
-    Collection<T> listAll(Connection conn) throws SQLException;
+    Collection<T> listAll(Statement statement) throws SQLException;
 
     /**
      * 根据id获取对象
      *
-     * @param conn
+     * @param statement
      * @param id
      * @return
      */
-    T get(Connection conn, String id) throws SQLException;
+    T get(Statement statement, String id) throws SQLException;
 }

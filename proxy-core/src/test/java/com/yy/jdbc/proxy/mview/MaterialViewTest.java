@@ -10,10 +10,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Collection;
 
 /**
@@ -37,7 +34,7 @@ public class MaterialViewTest extends BaseDAO {
 
     @Test
     public void isExists() throws SQLException {
-        boolean result = service.isExists(conn, "mv_test0");
+        boolean result = service.isExists(conn.createStatement(), "mv_test0");
         System.out.println(result);
     }
 
@@ -52,7 +49,7 @@ public class MaterialViewTest extends BaseDAO {
         materialView.setSqlDataStruct(new SqlExpression(null, null).withOrderBy(OrderBy.asc(new Field("admin_user", "user_id"))));
         materialView.setFactTable("object_privilege");
         materialView.setCreateSQL("create materialview xxx ");
-        boolean result = service.create(conn, materialView);
+        boolean result = service.create(conn.createStatement(), materialView);
     }
 
     @Test
@@ -71,24 +68,24 @@ public class MaterialViewTest extends BaseDAO {
         materialView.setSqlDataStruct(new SqlExpression(null, null).withOrderBy(OrderBy.asc(new Field("admin_user", "user_id"))));
         materialView.setFactTable("admin_user");
         materialView.setCreateSQL("create materialview xxx ");
-        boolean result = service.create(conn, materialView);
+        boolean result = service.create(conn.createStatement(), materialView);
     }
 
     @Test
     public void list() throws SQLException {
-        Collection<MaterialView> results = service.listAll(conn);
+        Collection<MaterialView> results = service.listAll(conn.createStatement());
         System.out.println(results.size());
     }
 
     @Test
     public void get() throws SQLException {
-        MaterialView mv = service.get(conn, "mv_test03");
+        MaterialView mv = service.get(conn.createStatement(), "mv_test03");
         System.out.println();
     }
 
     @Test
     public void delete() throws SQLException {
-        boolean result = service.delete(conn, "mv_test01");
+        boolean result = service.delete(conn.createStatement(), "mv_test01");
     }
 
     @Test
@@ -108,12 +105,12 @@ public class MaterialViewTest extends BaseDAO {
         materialView.setFactTable("admin_user");
         materialView.setCreateSQL("create materialview xxx ");
         materialView.setStore(true);
-        boolean result = service.update(conn, materialView);
+        boolean result = service.update(conn.createStatement(), materialView);
     }
 
     @Test
     public void getMaterialViewListByFactTable() throws SQLException {
-        Collection<MaterialView> results = service.getMaterialViewListByFactTable(conn, "admin_privilege");
+        Collection<MaterialView> results = service.getMaterialViewListByFactTable(conn.createStatement(), "admin_privilege");
         System.out.println(results.size());
     }
 
@@ -129,7 +126,7 @@ public class MaterialViewTest extends BaseDAO {
 
     @Test
     public void refresh() throws SQLException {
-        service.refresh(conn, "mv_test01");
+        service.refresh(conn.createStatement(), "mv_test01");
     }
 
     @Test
@@ -146,8 +143,9 @@ public class MaterialViewTest extends BaseDAO {
 
     @Test
     public void showMaterialViews() throws SQLException {
-        ResultSet rs = service.showMaterialViews(conn);
-
+        Statement statement = conn.createStatement();
+        service.showMaterialViews(statement);
+        ResultSet rs = statement.getResultSet();
         if (rs != null) {
             ResultSetMetaData metaData = rs.getMetaData();
             int cols = metaData.getColumnCount();
@@ -165,7 +163,9 @@ public class MaterialViewTest extends BaseDAO {
     @Test
     public void showCreateMaterialView() throws SQLException {
         String viewName = "mv_test01";
-        ResultSet rs = service.showCreateMaterialView(conn, "mv_test01");
+        Statement statement = conn.createStatement();
+        service.showCreateMaterialView(statement, "mv_test01");
+        ResultSet rs = statement.getResultSet();
         if (rs != null) {
             ResultSetMetaData metaData = rs.getMetaData();
             int cols = metaData.getColumnCount();

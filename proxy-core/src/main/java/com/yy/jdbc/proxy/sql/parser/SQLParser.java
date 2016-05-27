@@ -96,24 +96,21 @@ public class SQLParser {
 	}
 	
 	public static void main(String[] args) throws SQLException {
-		TGSqlParser sqlparser = new TGSqlParser(EDbVendor.dbvoracle);
+		TGSqlParser sqlparser = new TGSqlParser(EDbVendor.dbvmysql);
 //		String sql="drop materialized view an_user_base_file_no_charge;";
 //		String sql="CREATE MATERIALIZED VIEW an_user_base_file_no_charge build  immediate  refresh   complete with primary key ENABLE QUERY REWRITE   AS select distinct user_no from cw_arrearage t where (t.mon = dbms_tianjin.getLastMonth or        t.mon = add_months(dbms_tianjin.getLastMonth, -1))";
 //		String sql="select tt1.a,tt2.b,tt3.c,tt4.d from t1 tt1 join t2 tt2 on tt1.a=tt2.a join t3 tt3 on tt3.a=tt1.a join t4 tt4 on tt4.a=tt1.a where (tt1.b=1 and tt2.b=2)or tt3.d=4 group by tt1.c,tt2.c order by tt3.c asc,tt4.c desc";
-		String sql="create index index1 on view1(a,b);";
+		String sql="select a from a limit 1,2;";
 //		String sql="select aa,bb,cc,sum(kk),count(distinct(ddt)) from tttt where (a=1 and c=2) or c>10 and kk<=100 and mk in (1,2,3) group by mmk order by aaaaaaa asc;";
 //		String sql="dbms_mview.refresh(TAB=>'an_user_base_file_no_charge',METHOD=>'FAST',PARALLELISM=>1)";
 		sqlparser.setSqltext(sql);
 		int resultFlag=sqlparser.parse();
 		if(resultFlag==0){
-//			TSelectSqlStatement sqlStatement=(TSelectSqlStatement)sqlparser.sqlstatements.get(0);
+			TSelectSqlStatement sqlStatement=(TSelectSqlStatement)sqlparser.sqlstatements.get(0);
 //			SQL sqlParser=getAbstractSQL(sqlStatement.sqlstatementtype,sqlStatement);
-//			System.out.println(sqlStatement.getLimitClause().getOffset());
+			System.out.println(sqlStatement.getLimitClause().getRow_count());
 //			MaterialView view=(MaterialView)sqlParser.compile();
 //			System.out.println(view);
-			TCreateIndexSqlStatement sqlStatement=(TCreateIndexSqlStatement)sqlparser.sqlstatements.get(0);
-			System.out.println(sqlStatement.getTableName()+""+sqlStatement.getIndexName());
-			
 //			
 		}else{
 			System.out.println(sqlparser.getErrormessage());

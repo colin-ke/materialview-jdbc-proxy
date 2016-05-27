@@ -45,9 +45,9 @@ public class MaterialViewRepository
      * {@inheritDoc}
      */
     @Override
-    public boolean isExists(Connection conn, String viewName) throws SQLException {
+    public boolean isExists(Statement statement, String viewName) throws SQLException {
         String sql = countSQL + " where viewName=?;";
-        boolean result = runner.query(conn, sql, new ResultSetHandler<Boolean>() {
+        boolean result = runner.query(statement.getConnection(), sql, new ResultSetHandler<Boolean>() {
             @Override
             public Boolean handle(ResultSet rs) throws SQLException {
                 int countNum = 0;
@@ -62,11 +62,13 @@ public class MaterialViewRepository
 
     /**
      * {@inheritDoc}
+     * @param statement
+     * @param view
      */
     @Override
-    public boolean create(Connection conn, MaterialView view) throws SQLException {
+    public boolean create(Statement statement, MaterialView view) throws SQLException {
         runner.insert(
-                conn, insertSQL,
+                statement.getConnection(), insertSQL,
                 new MaterialViewResultSetEmptyHandler(),
                 new Object[]
                         {
@@ -81,8 +83,8 @@ public class MaterialViewRepository
     }
 
     //    @Override
-    public boolean update(Connection conn, MaterialView view) throws SQLException {
-        runner.update(conn, updateSQL, new Object[]
+    public boolean update(Statement statement, MaterialView view) throws SQLException {
+        runner.update(statement.getConnection(), updateSQL, new Object[]
                 {
                         view.getBuild().name(), view.getRefresh().name(),
                         view.isRewrite(), view.getSqlStr(),
@@ -96,55 +98,55 @@ public class MaterialViewRepository
      * {@inheritDoc}
      */
     @Override
-    public boolean delete(Connection conn, String viewId) throws SQLException {
-        runner.update(conn, deleteSQL, viewId);
+    public boolean delete(Statement statement, String viewId) throws SQLException {
+        runner.update(statement.getConnection(), deleteSQL, viewId);
         return true;
     }
 
     /**
      * {@inheritDoc}
+     * @param statement
      */
     @Override
-    public Collection<MaterialView> listAll(Connection conn) throws SQLException {
-        return runner.query(conn, selectSQL, new MaterialViewResultSetListHandler());
+    public Collection<MaterialView> listAll(Statement statement) throws SQLException {
+        return runner.query(statement.getConnection(), selectSQL, new MaterialViewResultSetListHandler());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public MaterialView get(Connection conn, String viewId) throws SQLException {
+    public MaterialView get(Statement statement, String viewId) throws SQLException {
         String sql = selectSQL.concat(" where viewName=?");
-        return runner.query(conn, sql, new MaterialViewResultSetHandler(), new Object[]{viewId});
+        return runner.query(statement.getConnection(), sql, new MaterialViewResultSetHandler(), new Object[]{viewId});
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Collection<MaterialView> getMaterialViewListByFactTable(Connection conn, String factTable) throws SQLException {
+    public Collection<MaterialView> getMaterialViewListByFactTable(Statement statement, String factTable) throws SQLException {
         String sql = selectSQL.concat(" where factTable=?");
-        return runner.query(conn, sql, new MaterialViewResultSetListHandler(), new Object[]{factTable});
+        return runner.query(statement.getConnection(), sql, new MaterialViewResultSetListHandler(), new Object[]{factTable});
     }
 
     /**
      * {@inheritDoc}
+     * @param statement
      */
     @Override
-    public ResultSet showMaterialViews(Connection conn) throws SQLException {
+    public boolean showMaterialViews(Statement statement) throws SQLException {
         String sql = "select viewName from " + TABLE_NAME;
-        Statement stmt = conn.createStatement() ;
-        return stmt.executeQuery(sql);
+        return statement.execute(sql);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ResultSet showCreateMaterialView(Connection conn, String viewName) throws SQLException {
+    public boolean showCreateMaterialView(Statement statement, String viewName) throws SQLException {
         String sql = "select createSQL from " + TABLE_NAME + " where viewName='" + viewName + "'";
-        Statement stmt = conn.createStatement() ;
-        return stmt.executeQuery(sql);
+        return statement.execute(sql);
     }
 
     /**

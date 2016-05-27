@@ -10,9 +10,8 @@ import com.yy.jdbc.proxy.mview.storage.MaterialViewStoreProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 
 /**
@@ -32,9 +31,9 @@ public class MaterialViewProvider implements IMaterialViewProvider {
      * {@inheritDoc}
      */
     @Override
-    public boolean isExists(Connection conn, String viewName)
+    public boolean isExists(Statement statement, String viewName)
             throws SQLException {
-        boolean result = repository.isExists(conn, viewName);
+        boolean result = repository.isExists(statement, viewName);
         if (result) {
             SQLException exception = new MaterialViewAlreadyExistException(viewName);
             logger.error(exception.getMessage());
@@ -45,56 +44,59 @@ public class MaterialViewProvider implements IMaterialViewProvider {
 
     /**
      * {@inheritDoc}
+     * @param statement
+     * @param view
      */
     @Override
-    public boolean create(Connection conn, MaterialView view) throws SQLException {
-        if (!isExists(conn, view.getViewName())) {
+    public boolean create(Statement statement, MaterialView view) throws SQLException {
+        if (!isExists(statement, view.getViewName())) {
             if (view.getBuild() == MaterialView.Build.immediate && !view.isStore()) {
-                storeProvider.build(conn, view);
+                storeProvider.build(statement, view);
                 view.setStore(true);
             }
-            return repository.create(conn, view);
+            return repository.create(statement, view);
         }
         return false;
     }
 
     //    @Override
-    public boolean update(Connection conn, MaterialView view) throws SQLException {
-        return ((MaterialViewRepository) repository).update(conn, view);
+    public boolean update(Statement statement, MaterialView view) throws SQLException {
+        return ((MaterialViewRepository) repository).update(statement, view);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean delete(Connection conn, String viewName) throws SQLException {
-        MaterialView mv = get(conn, viewName);
+    public boolean delete(Statement statement, String viewName) throws SQLException {
+        MaterialView mv = get(statement, viewName);
         if (mv != null) {
-            storeProvider.drop(conn, mv);
+            storeProvider.drop(statement, mv);
         }
-        return repository.delete(conn, viewName);
+        return repository.delete(statement, viewName);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param statement
+     */
+    @Override
+    public Collection<MaterialView> listAll(Statement statement) throws SQLException {
+        return repository.listAll(statement);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Collection<MaterialView> listAll(Connection conn) throws SQLException {
-        return repository.listAll(conn);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MaterialView get(Connection conn, String viewName) throws SQLException {
-        MaterialView view = repository.get(conn, viewName);
+    public MaterialView get(Statement statement, String viewName) throws SQLException {
+        MaterialView view = repository.get(statement, viewName);
         if (view == null) {
             SQLException exception = new MaterialViewNotExistException(viewName);
             logger.info(exception.getMessage());
             throw exception;
         }
-        return refreshIfNecessary(conn, view);
+        return refreshIfNecessary(statement, view);
     }
 
     /**
@@ -102,12 +104,12 @@ public class MaterialViewProvider implements IMaterialViewProvider {
      */
     @Override
     public Collection<MaterialView> getMaterialViewListByFactTable(
-            Connection conn, String factTable) throws SQLException {
+            Statement statement, String factTable) throws SQLException {
         Collection<MaterialView> views = repository.
-                getMaterialViewListByFactTable(conn, factTable);
+                getMaterialViewListByFactTable(statement, factTable);
         for (MaterialView view : views) {
             if (!view.isStore()) {
-                refreshIfNecessary(conn, view);
+                refreshIfNecessary(statement, view);
             }
         }
         return views;
@@ -117,40 +119,41 @@ public class MaterialViewProvider implements IMaterialViewProvider {
      * {@inheritDoc}
      */
     @Override
-    public boolean refresh(Connection conn, String viewName) throws SQLException {
-        MaterialView view = get(conn, viewName);
-        return storeProvider.refresh(conn, view);
+    public boolean refresh(Statement statement, String viewName) throws SQLException {
+        MaterialView view = get(statement, viewName);
+        return storeProvider.refresh(statement, view);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param statement
+     */
+    @Override
+    public boolean showMaterialViews(Statement statement) throws SQLException {
+        return repository.showMaterialViews(statement);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ResultSet showMaterialViews(Connection conn) throws SQLException {
-        return repository.showMaterialViews(conn);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ResultSet showCreateMaterialView(Connection conn, String viewName) throws SQLException {
-        return repository.showCreateMaterialView(conn, viewName);
+    public boolean showCreateMaterialView(Statement statement, String viewName) throws SQLException {
+        return repository.showCreateMaterialView(statement, viewName);
     }
 
     /**
      * 如果有必要才刷新
      *
-     * @param conn
+     * @param statement
      * @param view
      * @return
      */
-    private MaterialView refreshIfNecessary(Connection conn, MaterialView view)
+    private MaterialView refreshIfNecessary(Statement statement, MaterialView view)
             throws SQLException {
         if (view.getBuild() == MaterialView.Build.deferred && !view.isStore()) {
-            storeProvider.build(conn, view);
+            storeProvider.build(statement, view);
             view.setStore(true);
-            update(conn, view);
+            update(statement, view);
         }
         return view;
     }

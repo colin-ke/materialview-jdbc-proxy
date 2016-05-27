@@ -54,6 +54,7 @@ public class ProxyMaterialView {
 
 	public static boolean proxyExecute(final Statement statement,
 			String sql, boolean isSupportMaterialView) throws SQLException {
+		if(StringUtils.isEmpty(sql)) throw new SQLException("sql不能为空");
 		if (isSupportMaterialView) {
 			switch (ViewOpt.getViewOpt(sql)) {
 			case REFRESH:
@@ -64,33 +65,44 @@ public class ProxyMaterialView {
 				return statement.execute(sql);
 			}
 		} else {
-			if(autoRewrite(sql, statement.getConnection())){
-				return true;
-			}
 			MaterialView model = null;
 			ViewOpt viewSqlType=ViewOpt.getViewOpt(sql);
 			if(viewSqlType!=null){
 				try{
 					model =SQLParser.genMaterialView(sql);
 				}catch(Exception e){
-					e.printStackTrace();
-					return statement.execute(sql);
 				}
-			}else{
-				return 	statement.execute(sql);
+				switch (viewSqlType) {
+				case CREATE:
+					model.setSqlDataStruct(null);
+					MaterialViewManager.createMaterialView(model, statement);
+					return false;
+				case DROP:
+					MaterialViewManager.dropMaterialView(model.getViewName(), statement);
+					return false;
+				case REFRESH:
+					return MaterialViewManager.refreshMaterialView(model.getViewName(), statement);
+				default:
+				}
 			}
-			switch (viewSqlType) {
-			case CREATE:
-				model.setSqlDataStruct(null);
-				return MaterialViewManager.createMaterialView(model, statement.getConnection());
-			case DROP:
-				return MaterialViewManager.dropMaterialView(model.getViewName(), statement.getConnection());
-			case REFRESH:
-				return MaterialViewManager.refreshMaterialView(model.getViewName(), statement.getConnection());
-			default:
-				throw new SQLException("不可能发生...");
+			
+			if(formatSql(sql).equals("show mviews")){
+				return MaterialViewManager.showMaterialViews(statement);
 			}
+			
+			if(formatSql(sql).startsWith("show create mview")){
+				String viewName=formatSql(sql).replace("show create mview ","");
+				return MaterialViewManager.showCreateMaterialView(statement,viewName);
+			}
+			if(autoRewrite(sql, statement.getConnection())){
+				return false;
+			}
+			
+			
+			return statement.execute(sql);
 		}
+		
+		
 	}
 
 	private static Collection<MaterialView> listMaterialViews(
@@ -98,7 +110,7 @@ public class ProxyMaterialView {
 			throws SQLException {
 		MaterialView model = new MaterialView();
 		model.setFactTable(factTableName);
-		return MaterialViewManager.getMaterialViewListByFactTable(model.getFactTable(),statement.getConnection());
+		return MaterialViewManager.getMaterialViewListByFactTable(model.getFactTable(),statement);
 	}
 
 	/**
@@ -115,50 +127,35 @@ public class ProxyMaterialView {
 	public static ResultSet proxyExecute(String sql,
 			Statement statement, boolean isSupportMaterialView)
 			throws SQLException {
-		if(StringUtils.isEmpty(sql)) throw new SQLException("sql不能为空");
-		if(formatSql(sql).equals("show mviews")){
-			return MaterialViewManager.showMaterialViews(statement.getConnection());
-		}
-		
-		if(formatSql(sql).startsWith("show create mview")){
-			String viewName=formatSql(sql).replace("show create mview ","");
-			return MaterialViewManager.showCreateMaterialView(statement.getConnection(),viewName);
-		}
-		
 		if(!sql.trim().toLowerCase().startsWith("select "))return statement.executeQuery(sql);
-		if (isSupportMaterialView) {
+		
+		Boolean isRewrite=conRewriteMap.get(statement.getConnection());
+		if(isRewrite==null||!isRewrite){
+			return statement.executeQuery(sql);
+		}
+		MaterialView model=null;
+		try{
+			model =SQLParser.genMaterialView(sql);
+		}catch(Exception e){
+			e.printStackTrace();
+			return statement.executeQuery(sql);
+		}
+		Collection<MaterialView> materViews = ProxyMaterialView
+				.listMaterialViews(statement, model.getFactTable());
+		if (CollectionUtils.isEmpty(materViews)) {
 			return statement.executeQuery(sql);
 		} else {
-			Boolean isRewrite=conRewriteMap.get(statement.getConnection());
-			if(isRewrite==null||!isRewrite){
-				return statement.executeQuery(sql);
-			}
-			
-			MaterialView model=null;
-			try{
-				model =SQLParser.genMaterialView(sql);
-			}catch(Exception e){
-				e.printStackTrace();
-				return statement.executeQuery(sql);
-			}
-			Collection<MaterialView> materViews = ProxyMaterialView
-					.listMaterialViews(statement, model.getFactTable());
-			if (CollectionUtils.isEmpty(materViews)) {
-				return statement.executeQuery(sql);
-			} else {
-				Iterator<MaterialView> iter=materViews.iterator();
-				while(iter.hasNext()){
-					MaterialView view=iter.next();
-					MaterialView viewModel =SQLParser.genMaterialView(view.getCreateSQL());
-					sql=model.getSqlDataStruct().tryRewrite(viewModel.getSqlDataStruct(), view.getViewName()).toSql();
-					if(!model.getSqlDataStruct().toSql().equals(sql)){
-						logger.info("rewrite sql to:"+sql);
-						break;
-					}
+			Iterator<MaterialView> iter=materViews.iterator();
+			while(iter.hasNext()){
+				MaterialView view=iter.next();
+				MaterialView viewModel =SQLParser.genMaterialView(view.getCreateSQL());
+				sql=model.getSqlDataStruct().tryRewrite(viewModel.getSqlDataStruct(), view.getViewName()).toSql();
+				if(!model.getSqlDataStruct().toSql().equals(sql)){
+					logger.info("rewrite sql to:"+sql);
+					break;
 				}
-				return statement.executeQuery(sql);
 			}
-
+			return statement.executeQuery(sql);
 		}
 	}
 	
