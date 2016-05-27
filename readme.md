@@ -11,21 +11,21 @@
 
 如物化视图的创建语句：
 
-> create materialized view mv_sales_fact as  
+> create materialized view mv_sales_fact as 
 > SELECT time_id,product_id, COUNT(time_id) c , count(distinct time_id)dc, count(distinct customer_id)dcd, sum(time_id)sc 
 > FROM sales_fact_1997 
-> GROUP BY time_id,product_id 
+> GROUP BY time_id,product_id
 
 当创建物化视图时，会把视图对应的sql执行一遍，把执行的结果存储到真实的物理表 
 中，所以下面的sql会被分析出能够从物化视图查询，从而转到物化视图查询 
 应用程序SQL： 
 
-> SELECT time_id,product_id,COUNT(time_id) c  
-> FROM sales_fact_1997 WHERE product_id>1537  
-> GROUP BY time_id,product_id ; 
+> SELECT time_id,product_id,COUNT(time_id) c 
+> FROM sales_fact_1997 WHERE product_id>1537 
+> GROUP BY time_id,product_id;
 
 被重写之后的SQL：
 
-> SELECT mv_sales_fact.time_id AS time_id,mv_sales_fact.product_id AS product_id,mv_sales_fact.c AS c  
-> FROM mv_sales_fact  
+> SELECT mv_sales_fact.time_id AS time_id,mv_sales_fact.product_id AS product_id,mv_sales_fact.c AS c 
+> FROM mv_sales_fact 
 > WHERE mv_sales_fact.product_id > 1537
